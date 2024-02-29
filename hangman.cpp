@@ -1,6 +1,7 @@
 /* hangman.cpp */
 #include <iostream>
 // #include <string>
+#include <fstream>
 #include <set>
 using namespace std;
 
@@ -29,6 +30,39 @@ ______                           _   _                ___                      _
     }
 };
 
+// The GetWord class has a static method for fetching a random word from the wordList.txt file
+class GetRandomWord
+{
+public:
+    static string getRandomWord()
+    {
+        ifstream file("wordList.txt");
+
+        if (!file.is_open())
+        {
+            cerr << "Failed to open the file." << endl;
+        }
+
+        srand(time(nullptr));
+        int randomIndex = rand() % 7773;
+        string line;
+        string word;
+        int index = 0;
+        while (getline(file, line))
+        {
+            if (index == randomIndex)
+            {
+                word = line;
+                // cout << "Random word: " << word << endl;
+                break;
+            }
+            index++;
+        }
+        file.close();
+        return word;
+    }
+};
+
 // The bunny class. Holds all relevant fields/methods of the game state
 class Bunny
 {
@@ -42,9 +76,11 @@ public:
     string workingWord;
 
     // Bunny class constructor
-    Bunny(string _word)
+    Bunny(string)
     {
-        word = _word;
+        // Get the random word for this Bunny instance
+        word = GetRandomWord::getRandomWord();
+
         misses = 0;
         for (int i = 0; i < word.length(); i++)
         {
@@ -55,6 +91,11 @@ public:
     }
 
     string getWord()
+    {
+        return word;
+    }
+
+    string getWorkingWord()
     {
         return workingWord;
     }
@@ -524,7 +565,7 @@ public:
                     cout << letter << ", ";
                 }
                 cout << endl;
-                cout << "Misses: " << bunny.getMisses() << "/7" << endl;
+                cout << "Misses remaining: " << (7 - bunny.getMisses()) << "/7" << endl;
 
                 // Loop to accept user input
                 userHasGivenInput = false;
@@ -561,6 +602,7 @@ public:
                 else if (bunny.gameLost())
                 {
                     bunny.show();
+                    cout << "The word was: " << bunny.getWord() << endl;
                     cout << endl
                          << endl
                          << "Oh no, you let the bunny hop away!" << endl;
